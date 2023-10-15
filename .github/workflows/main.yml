@@ -36,14 +36,14 @@ jobs:
           docker push $NAME/$REPO:latest
 
       - name: SSH to EC2
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@master
         env:
           NAME: ${{ secrets.DOCKERHUB_USERNAME }}
           REPO: allps-scrapper
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          password: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT }}
           script: |
             echo "Delete old container..."
