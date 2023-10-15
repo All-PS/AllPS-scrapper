@@ -1,16 +1,16 @@
-# This is a sample Python script.
+from selenium import webdriver
+from scrapper.baekjoon_scrapper import baekjoon_scrapper
 
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
+def main():
+    # 웹 드라이버 초기화
+    driver = webdriver.Chrome()
 
+    # 플랫폼별 크롤링
+    while True:
+        baekjoon_scrapper(driver)
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
+    # 셀레니움 웹 드라이버 종료
+    driver.quit()
 
-
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+if __name__ == "__main__":
+    main()
