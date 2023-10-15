@@ -47,9 +47,10 @@ jobs:
           port: ${{ secrets.EC2_SSH_PORT }}
           envs: NAME,REPO
           script: |
-            if docker ps -a | grep $NAME/$REPO:latest; then
-              docker stop $NAME/$REPO:latest
-              docker rm $NAME/$REPO:latest
+            CONTAINER_ID=$(docker ps -a | grep $NAME/$REPO:latest -q)
+            if [ ! -z "$CONTAINER_ID" ]; then
+              docker stop $CONTAINER_ID
+              docker rm $CONTAINER_ID
             fi
             IMAGE_ID=$(docker images $NAME/$REPO:latest -q)
             if [ ! -z "$IMAGE_ID" ]; then
