@@ -3,8 +3,8 @@ import re
 import time
 
 from selenium.webdriver.common.by import By
-from dao.dao import DatabaseConnection
-from model.baekjoon_problem import BaekjoonProblem
+from app.dao.dao import DatabaseConnection
+from app.model.baekjoon_problem import BaekjoonProblem
 
 
 def baekjoon_scrapper(driver):
