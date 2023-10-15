@@ -46,6 +46,8 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT }}
           script: |
+            echo $NAME
+            echo $REPO
             if docker ps -a | grep ${NAME}/${REPO}:latest; then
               docker stop ${NAME}/${REPO}:latest
               docker rm ${NAME}/${REPO}:latest
