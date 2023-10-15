@@ -1,5 +1,5 @@
 from selenium import webdriver
-from scrapper.baekjoon_scrapper import baekjoon_scrapper
+from app.scrapper.baekjoon_scrapper import baekjoon_scrapper
 
 def main():
     # 웹 드라이버 초기화
