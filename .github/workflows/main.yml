@@ -19,7 +19,7 @@ jobs:
       - name: make settings.py (about rds)
         run: |
           touch ./app/settings.py
-          echo "{{ secrets.SETTINGS }}" > ./app/settings.py
+          echo "${{ secrets.SETTINGS }}" > ./app/settings.py
 
       - name: Login to DockerHub
         uses: docker/login-action@v3.0.0
