@@ -46,14 +46,14 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT }}
           script: |
-            if docker ps -a | grep "$NAME/$REPO:latest"; then
-              docker stop "$NAME/$REPO:latest"
-              docker rm "$NAME/$REPO:latest"
+            if docker ps -a | grep "${NAME}/${REPO}:latest"; then
+              docker stop "${NAME}/${REPO}:latest"
+              docker rm "${NAME}/${REPO}:latest"
             fi
-            IMAGE_ID=$(docker images "$NAME/$REPO:latest" -q)
+            IMAGE_ID=$(docker images "${NAME}/${REPO}:latest" -q)
             if [ ! -z "$IMAGE_ID" ]; then
               docker rmi $IMAGE_ID
             fi
-            docker pull "$NAME/$REPO:latest"
-            docker run -d "$NAME/$REPO:latest"
+            docker pull "${NAME}/${REPO}:latest"
+            docker run -d "${NAME}/${REPO}:latest"
           
