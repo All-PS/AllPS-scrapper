@@ -50,7 +50,10 @@ jobs:
               docker stop "$NAME/$REPO:latest"
               docker rm "$NAME/$REPO:latest"
             fi
-            docker rmi $(docker images "$NAME/$REPO:latest" -q) || true
+            IMAGE_ID=$(docker images "$NAME/$REPO:latest" -q)
+            if [ ! -z "$IMAGE_ID" ]; then
+              docker rmi $IMAGE_ID
+            fi
             docker pull "$NAME/$REPO:latest"
             docker run -d "$NAME/$REPO:latest"
           
