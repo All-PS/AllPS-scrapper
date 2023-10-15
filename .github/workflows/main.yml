@@ -46,16 +46,21 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT }}
           script: |
-            echo $NAME
-            echo $REPO
+            echo "Delete old container..."
             if docker ps -a | grep ${NAME}/${REPO}:latest; then
               docker stop ${NAME}/${REPO}:latest
               docker rm ${NAME}/${REPO}:latest
             fi
+            echo "Delete old container completed."
+            echo "Delete old image..."
             IMAGE_ID=$(docker images ${NAME}/${REPO}:latest -q)
             if [ ! -z "$IMAGE_ID" ]; then
               docker rmi $IMAGE_ID
             fi
+            echo "Delete old image completed."
+            echo "Pulling new image..."
             docker pull ${NAME}/${REPO}:latest
+            echo "Pulling new image completed."
+            echo "Running new container..."
             docker run -d ${NAME}/${REPO}:latest
-          
+            echo "Running new container completed."
