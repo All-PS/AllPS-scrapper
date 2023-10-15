@@ -47,7 +47,7 @@ jobs:
           port: ${{ secrets.EC2_SSH_PORT }}
           envs: NAME,REPO
           script: |
-            CONTAINER_ID=$(docker ps -a | grep $NAME/$REPO:latest -q)
+            CONTAINER_ID=$(docker ps -q --filter "ancestor=$NAME/$REPO:latest")
             if [ ! -z "$CONTAINER_ID" ]; then
               docker stop $CONTAINER_ID
               docker rm $CONTAINER_ID
