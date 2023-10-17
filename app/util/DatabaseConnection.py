@@ -15,17 +15,17 @@ class DatabaseConnection:
         return cls._instance
 
     @classmethod
-    def startTransaction(self):
-        if not self._instance:
-            DatabaseConnection()
-        self._instance.cursor().execute("START TRANSACTION")
+    def startTransaction(cls):
+        if not cls._instance:
+            cls()
+        cls._instance.cursor().execute("START TRANSACTION")
 
     @classmethod
-    def commitTransaction(self):
-        if not self._instance:
-            DatabaseConnection()
-        self._instance.commit()
-        self._instance.cursor().close()
+    def commitTransaction(cls):
+        if not cls._instance:
+            cls()
+        cls._instance.commit()
+        cls._instance.cursor().close()
 
     # def rollbackTransaction(self):
     #     if not self._instance:

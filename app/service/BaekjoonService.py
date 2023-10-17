@@ -1,7 +1,9 @@
 import random
 import re
 import time
-from datetime import datetime, timezone
+from datetime import datetime
+
+import pytz
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -11,12 +13,14 @@ from app.dao.ProblemDao import ProblemDao
 from app.model.BaekjoonProblem import BaekjoonProblem
 from app.util.ChromeDriver import ChromeDriver
 from app.util.DatabaseConnection import DatabaseConnection
+from app.util.SlackBot import SlackBot
 
 
 def baekjoonService():
     # ChromeDriver 가져오기
     driver = ChromeDriver()
     wait = WebDriverWait(driver, 10)
+    SlackBot.alert("백준 크롤링이 시작되었습니다.")
 
     # 문제목록 열기
     driver.get('https://www.acmicpc.net/problemset')
@@ -54,7 +58,7 @@ def baekjoonService():
             # Todo. Tier, Categories 가져오기
             tier = None
             categories = None
-            now = datetime.now(timezone('Asia/Seoul')).strftime('%Y-%m-%d %H:%M:%S')
+            now = datetime.now(pytz.timezone('Asia/Seoul')).strftime('%Y-%m-%d %H:%M:%S')
             problem = BaekjoonProblem(code=code, name=name, url=url, tier=tier, categories=categories, updatedAt=now)
 
             # DB에 문제 저장하기
@@ -71,3 +75,5 @@ def baekjoonService():
             driver.switch_to.window(driver.window_handles[0])
 
             time.sleep(random.uniform(8,12))
+
+        SlackBot.alert(f"백준 {page} 페이지의 크롤링이 완료되었습니다.")
