@@ -15,6 +15,50 @@ from app.util.DatabaseConnection import DatabaseConnection
 from app.util.SlackBot import SlackBot
 
 
+def crawlBaekjoon():
+    driver = ChromeDriver()
+    wait = WebDriverWait(driver, 10)
+    SlackBot.alert("백준 크롤링이 시작되었습니다.")
+    pages = getPageNumber(driver)
+    crawlPages(driver, pages, wait)
+
+
+def crawlPages(driver, pages, wait):
+    for page in range(1, pages + 1):
+        openProblemSetPage(driver, page)
+        problems = getProblems(driver, wait)
+        DatabaseConnection.startTransaction()
+
+        crawlProblems(driver, problems, wait)
+
+        # 남은 트랜잭션 커밋
+        DatabaseConnection.commitTransaction()
+
+        SlackBot.alert(f"백준 {page} 페이지의 크롤링이 완료되었습니다.")
+
+
+def crawlProblems(driver, problems, wait):
+    for idx, problem in enumerate(problems, 1):
+        try:
+            link = getProblemLink(problem, wait)
+            openNewTab(driver, link)
+        except Exception as e:
+            print(idx, "번 크롤링 실패\n Exception: ", e)
+            continue
+
+        try:
+            getProblemData(driver, link, wait)
+        except Exception as e:
+            print(idx, "번 크롤링 실패\n Exception: ", e)
+        finally:
+            closeNewTab(driver)
+            # 매 10개의 문제마다 트랜잭션 커밋
+            if idx % 10 == 0:
+                DatabaseConnection.commitTransaction()
+                DatabaseConnection.startTransaction()
+            time.sleep(random.uniform(8, 12))
+
+
 def getPageNumber(driver):
     driver.get('https://www.acmicpc.net/problemset')
     pages_text = driver.find_elements(By.XPATH, '//ul[@class=\'pagination\']/li')[-1].text
@@ -48,40 +92,6 @@ def getProblemData(driver, link, wait):
 
     problem = BaekjoonProblem(code=code, name=name, url=url, tier=tier, categories=categories, updatedAt=now)
     ProblemDao.save(problem)
-
-
-def crawlProblems():
-    driver = ChromeDriver()
-    wait = WebDriverWait(driver, 10)
-    SlackBot.alert("백준 크롤링이 시작되었습니다.")
-
-    pages = getPageNumber(driver)
-
-    for page in range(1, pages + 1):
-        openProblemSetPage(driver, page)
-        problems = getProblems(driver, wait)
-        DatabaseConnection.startTransaction()
-
-        for idx, problem in enumerate(problems, 1):
-            link = getProblemLink(problem, wait)
-            openNewTab(driver, link)
-
-            try:
-                getProblemData(driver, link, wait)
-            except Exception as e:
-                print(idx, "번 크롤링 실패\n Exception: ", e)
-            finally:
-                closeNewTab(driver)
-                # 매 10개의 문제마다 트랜잭션 커밋
-                if idx % 10 == 0:
-                    DatabaseConnection.commitTransaction()
-                    DatabaseConnection.startTransaction()
-                time.sleep(random.uniform(8, 12))
-
-        # 남은 트랜잭션 커밋
-        DatabaseConnection.commitTransaction()
-
-        SlackBot.alert(f"백준 {page} 페이지의 크롤링이 완료되었습니다.")
 
 
 def getProblemLink(problem, wait):
