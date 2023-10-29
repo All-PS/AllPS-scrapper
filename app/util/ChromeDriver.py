@@ -15,7 +15,6 @@ class ChromeDriver:
                 ["google-chrome", "--remote-debugging-port=9222", "--headless", "--disable-gpu", "--no-sandbox"])
             options = webdriver.ChromeOptions()
             options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
-            driver = webdriver.Chrome(chrome_options=options)
             service = Service(executable_path=ChromeDriverManager().install())
             cls._instance = webdriver.Chrome(service=service, options=options)
         return cls._instance
