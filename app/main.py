@@ -1,11 +1,11 @@
-from app.service.BaekjoonService import baekjoonService
+from app.service.BaekjoonService import crawlProblems
 from app.util.ChromeDriver import ChromeDriver
 
 
 def main():
     # 플랫폼별 크롤링
     while True:
-        baekjoonService()
+        crawlProblems()
 
     # DB 연결 끊기
     DatabaseConnection.close()
