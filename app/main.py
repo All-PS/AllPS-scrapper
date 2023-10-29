@@ -12,6 +12,7 @@ def main():
 
     # 셀레니움 웹 드라이버 종료
     ChromeDriver().quit()
+    chrome_process.terminate()
 
 
 if __name__ == "__main__":
