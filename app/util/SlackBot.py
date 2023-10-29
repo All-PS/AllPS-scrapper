@@ -2,7 +2,6 @@ from slack_sdk import WebClient
 
 from app.settings import ALLPS_SLACK_TOKEN, ALLPS_SLACK_CHANNEL
 
-
 class SlackBot:
     _instance = None
 
