@@ -10,36 +10,16 @@ from selenium.webdriver.support import expected_conditions as EC
 
 from app.dao.ProblemDao import ProblemDao
 from app.model.BaekjoonProblem import BaekjoonProblem
-from app.settings import BAEKJOON_ID, BAEKJOON_PW
 from app.util.ChromeDriver import ChromeDriver
 from app.util.DatabaseConnection import DatabaseConnection
 from app.util.SlackBot import SlackBot
 
 
-def baekjoonLogin(driver, wait):
-    driver.get('https://www.acmicpc.net/login')
-    # 아이디 및 비밀번호 입력 필드 찾기
-    wait.until(EC.presence_of_element_located((By.NAME, "login_user_id")))
-    wait.until(EC.presence_of_element_located((By.NAME, "login_password")))
-    username_elem = driver.find_element(By.NAME, "login_user_id")
-    password_elem = driver.find_element(By.NAME, "login_password")
-
-    # 아이디 및 비밀번호 입력
-    username_elem.send_keys(BAEKJOON_ID)  # 여기에 사용자 이름을 입력해주세요.
-    password_elem.send_keys(BAEKJOON_PW)  # 여기에 비밀번호를 입력해주세요.
-    # 로그인 버튼 클릭
-    wait.until(EC.presence_of_element_located((By.ID, "submit_button")))
-    login_button = driver.find_element(By.ID, "submit_button")
-    login_button.click()
-    time.sleep(5)
-
-
 def crawlBaekjoon():
     driver = ChromeDriver()
     wait = WebDriverWait(driver, 10)
-    SlackBot.alert("백준 크롤링이 시작되었습니다.")
+    # SlackBot.alert("dev 백준 크롤링이 시작되었습니다.")
     pages = getPageNumber(driver)
-    baekjoonLogin(driver, wait)
     crawlPages(driver, pages, wait)
 
 
@@ -106,8 +86,8 @@ def getProblemData(driver, link, wait):
     wait.until(EC.presence_of_element_located((By.ID, 'problem_title')))
     name = driver.find_element(By.ID, 'problem_title').text
     url = link
-    tier = None  # Todo. Tier 가져오기
-    categories = None  # Todo. Categories 가져오기
+    tier = None
+    categories = None  # Todo. 티어 카테고리 코드 삭제 반영
     now = datetime.now(pytz.timezone('Asia/Seoul')).strftime('%Y-%m-%d %H:%M:%S')
 
     problem = BaekjoonProblem(code=code, name=name, url=url, tier=tier, categories=categories, updatedAt=now)
