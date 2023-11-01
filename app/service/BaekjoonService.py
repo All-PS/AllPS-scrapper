@@ -18,7 +18,7 @@ from app.util.SlackBot import SlackBot
 def crawlBaekjoon():
     driver = ChromeDriver()
     wait = WebDriverWait(driver, 10)
-    # SlackBot.alert("dev 백준 크롤링이 시작되었습니다.")
+    SlackBot.alert("dev 백준 크롤링이 시작되었습니다.")
     pages = getPageNumber(driver)
     crawlPages(driver, pages, wait)
 

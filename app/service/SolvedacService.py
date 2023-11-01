@@ -1,5 +1,4 @@
 import random
-import re
 import time
 from datetime import datetime
 
@@ -10,6 +9,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 from app.dao.ProblemDao import ProblemDao
 from app.model.BaekjoonProblem import BaekjoonProblem
+from app.provider.BaekjoonProvider import tags
 from app.util.ChromeDriver import ChromeDriver
 from app.util.DatabaseConnection import DatabaseConnection
 from app.util.SlackBot import SlackBot
@@ -18,48 +18,60 @@ from app.util.SlackBot import SlackBot
 def crawlSolvedac():
     driver = ChromeDriver()
     wait = WebDriverWait(driver, 10)
-    # SlackBot.alert("dev Solvedac 크롤링이 시작되었습니다.")
+    SlackBot.alert("Solvedac 크롤링이 시작되었습니다.")
+    crawlTags(driver, wait)
+
+
+def crawlTags(driver, wait):
+    # BaekjoonProvider 파일 내 tags List
+
+    for id in range(len(tags)):
+        # for tag in tags:
+        category = tags[id][0]
+        pageUrls = tags[id][1:]
+        # 태그 별 문제 정보 크롤링
+        for url in pageUrls:
+            openPage(driver, url)
+            crawlPages(driver, wait, category, url, id + 1)
+
+
+def crawlPages(driver, wait, category, url, id):
+    # 태그 내 페이지 수
     pages = getPageNumber(driver)
-    crawlPages(driver, pages, wait)
-
-
-def crawlPages(driver, pages, wait):
     for page in range(1, pages + 1):
-        openTagListPage(driver, page)
-        tags = getTags(driver, wait)
-        for idx, tag in enumerate(tags, 1):
-            try:  # 태그 진입
-                taglink = getTagLink(tag, wait)
-                openNewTab(driver, taglink)
-            except Exception as e:
-                print("Exception: ", e)
-            problems = getTags(driver, wait)
-            # 해당 태그 진입하여 문제 정보 따오기까지 완완완
-            # todo 문제 번호, 티어 정보 DB화 작업......... 슬랙 알람 tag명 구현..?
+        openProblemSetPage(driver, url, page)
+        # problems = getProblems(driver, wait)
+        DatabaseConnection.startTransaction()
 
-        # 실제 태그명 아님..
-        SlackBot.alert(f"Solved {tag} 태그의 크롤링이 완료되었습니다.")
+        getProblemData(driver, wait, id)
+
+        # 5페이지마다 트랜젝션 커밋
+        if page % 5 == 0:
+            DatabaseConnection.commitTransaction()
+            DatabaseConnection.startTransaction()
+
+        time.sleep(random.uniform(5, 8))
+    SlackBot.alert(f"Solvedac {category} 태그의 크롤링이 완료되었습니다.")
 
 
 def getPageNumber(driver):
-    driver.get('https://solved.ac/problems/tags')
     pages_text = driver.find_elements(By.XPATH, '//div[@class=\'css-18lc7iz\']/a')[-1].text
     pages = int(pages_text)
     return pages
 
 
-def getTags(driver, wait):
+def getProblems(driver, wait):
     wait.until(EC.presence_of_element_located((By.XPATH, '//tbody/tr')))
     tags = driver.find_elements(By.XPATH, '//tbody/tr')
     return tags
 
 
-def openTagListPage(driver, page):
-    driver.get('https://solved.ac/problems/tags?page=' + str(page))
+def openPage(driver, link):
+    driver.get(link)
 
 
-def openTagSetPage(driver, tag):
-    driver.get('https://solved.ac/problems/tags/' + str(tag))
+def openProblemSetPage(driver, link, page):
+    driver.get(link + "?page=" + str(page))
 
 
 def openNewTab(driver, link):
@@ -73,7 +85,19 @@ def closeNewTab(driver):
     driver.switch_to.window(driver.window_handles[0])
 
 
-def getTagLink(tag, wait):
-    wait.until(EC.presence_of_element_located((By.XPATH, './/td[2]/a')))
-    link = tag.find_element(By.XPATH, './/td[2]/a').get_attribute('href')
-    return link
+def getProblemData(driver, wait, id):
+    # HTML 요소 선택
+    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'tr.css-1ojb0xa')))
+    rows = driver.find_elements(By.CSS_SELECTOR, 'tr.css-1ojb0xa')
+    rows.pop(0)
+
+    for row in rows:
+        # 각 컬럼의 데이터 추출
+        code = row.find_element(By.CSS_SELECTOR, 'span.css-1raije9 a span').text
+        name = row.find_element(By.CSS_SELECTOR, 'span.css-1oteowz').text
+        tier = row.find_element(By.CSS_SELECTOR, 'img.css-1vnxcg0').get_attribute('alt')
+        url = "https://www.acmicpc.net/problem/" + code
+        now = datetime.now(pytz.timezone('Asia/Seoul')).strftime('%Y-%m-%d %H:%M:%S')
+
+        problem = BaekjoonProblem(code=code, name=name, tier=tier, categoryid=id, url=url, updatedAt=now)
+        ProblemDao.save(problem)
