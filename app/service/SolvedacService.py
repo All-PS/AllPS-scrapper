@@ -23,7 +23,7 @@ def crawlSolvedac():
 
 
 def crawlTags(driver, wait):
-    for cId in range(3, len(tags)):
+    for cId in range(0, len(tags)):
         category = tags[cId][0]
         pageUrls = tags[cId][1:]
         # 태그 별 문제 정보 크롤링
