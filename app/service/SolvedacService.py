@@ -23,7 +23,7 @@ def crawlSolvedac():
 
 
 def crawlTags(driver, wait):
-    for cId in range(3, len(tags)):
+    for cId in range(0, len(tags)):
         category = tags[cId][0]
         pageUrls = tags[cId][1:]
         # 태그 별 문제 정보 크롤링
@@ -44,7 +44,7 @@ def crawlPages(driver, wait, url, cId):
         getProblemData(driver, wait, cId)
 
         # 5페이지마다 트랜젝션 커밋
-        if page % 5 == 0 || page == pages:
+        if page % 5 == 0 or page == pages:
             DatabaseConnection.commitTransaction()
             DatabaseConnection.startTransaction()
 

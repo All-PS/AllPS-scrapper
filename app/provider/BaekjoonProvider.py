@@ -5,7 +5,7 @@ tags = [
     ["그리디", "https://solved.ac/problems/tags/greedy"],
     ["완전탐색", "https://solved.ac/problems/tags/bruteforcing"],
     ["문자열", "https://solved.ac/problems/tags/string", "https://solved.ac/problems/tags/parsing",
-     "https://solved.ac/problems/tags/kmp"],
+     "https://solved.ac/problems/tags/kmp", "https://solved.ac/problems/tags/trie"],
     ["백트래킹", "https://solved.ac/problems/tags/backtracking"],
     ["그래프 탐색", "https://solved.ac/problems/tags/graphs", "https://solved.ac/problems/tags/graph_traversal",
      "https://solved.ac/problems/tags/dfs", "https://solved.ac/problems/tags/bfs"],
@@ -19,7 +19,17 @@ tags = [
     ["이진탐색", "https://solved.ac/problems/tags/binary_search", "https://solved.ac/problems/tags/ternary_search"],
     ["전처리", "https://solved.ac/problems/tags/precomputation"],
     ["수학", "https://solved.ac/problems/tags/math"],
-    # 17 재귀 뒤로 추가
+    ["재귀", "https://solved.ac/problems/tags/recursion"],
+    ["분할정복", "https://solved.ac/problems/tags/divide_and_conquer"],
+    ["정렬", "https://solved.ac/problems/tags/sorting"],
+    ["위상정렬", "https://solved.ac/problems/tags/topological_sorting"],
+    ["해싱", "https://solved.ac/problems/tags/hashing"],
+    ["기하학", "https://solved.ac/problems/tags/geometry"],
+    ["분리집합", "https://solved.ac/problems/tags/disjoint_set"],
+    ["최소신장트리", "https://solved.ac/problems/tags/mst"],
+    ["세그먼트트리", "https://solved.ac/problems/tags/segtree"],
+    ["비트마스킹", "https://solved.ac/problems/tags/bitmask"],
+    ["유량문제", "https://solved.ac/problems/tags/bipartite_matching", "https://solved.ac/problems/tags/flow"]
 ]
 
 tiers = [

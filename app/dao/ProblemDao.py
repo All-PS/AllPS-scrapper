@@ -9,7 +9,7 @@ class ProblemDao:
         cursor = DatabaseConnection().cursor()
 
         # 이미 해당 값이 존재하는지 확인
-        select_sql = "SELECT * FROM problem JOIN problem_category ON problem.id=problem_category.problem_id WHERE `problem.key` = %s AND `problem_category.category_id` = %s"
+        select_sql = "SELECT * FROM problem JOIN problem_category ON problem.id=problem_category.problem_id WHERE problem.key = %s AND problem_category.category_id = %s"
         select_params = (problem.key, problem.categoryId)
         problemKey = cursor.execute(select_sql, select_params)
         exist = cursor.fetchone()
