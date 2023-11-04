@@ -1,9 +1,10 @@
 class Problem:
 
-    def __init__(self, code, name, url, updatedAt, tier=None, categories=None):
-        self.code = code
+    def __init__(self, key, name, url, updatedAt, difficultyId, platformId, categoryId):
+        self.key = key
         self.name = name
-        self.tier = tier
         self.url = url
-        self.categories = categories
         self.updatedAt = updatedAt
+        self.difficultyId = difficultyId
+        self.platformId = platformId
+        self.categoryId = categoryId
