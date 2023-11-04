@@ -36,7 +36,7 @@ def crawlTags(driver, wait):
 
 def crawlPages(driver, wait, url, cId):
     # 태그 내 페이지 수
-    pages = getPageNumber(driver)
+    pages = getPageNumber(driver, wait)
     for page in range(1, pages + 1):
         openProblemSetPage(driver, url, page)
         DatabaseConnection.startTransaction()
@@ -51,7 +51,8 @@ def crawlPages(driver, wait, url, cId):
         time.sleep(random.uniform(8, 12))
 
 
-def getPageNumber(driver):
+def getPageNumber(driver, wait):
+    wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class=\'css-18lc7iz\']/a')))
     pages_text = driver.find_elements(By.XPATH, '//div[@class=\'css-18lc7iz\']/a')[-1].text
     pages = int(pages_text)
     return pages
@@ -81,19 +82,3 @@ def getProblemData(driver, wait, cId):
         problem = BaekjoonProblem(key=key, name=name, url=url, updatedAt=now, platformId=1, difficultyId=tier,
                                   categoryId=cId)
         ProblemDao.save(problem)
-
-# def getProblems(driver, wait):
-#     wait.until(EC.presence_of_element_located((By.XPATH, '//tbody/tr')))
-#     tags = driver.find_elements(By.XPATH, '//tbody/tr')
-#     return tags
-#
-#
-# def openNewTab(driver, link):
-#     driver.execute_script("window.open('', '_blank');")
-#     driver.switch_to.window(driver.window_handles[-1])
-#     driver.get(link)
-#
-#
-# def closeNewTab(driver):
-#     driver.close()
-#     driver.switch_to.window(driver.window_handles[0])
