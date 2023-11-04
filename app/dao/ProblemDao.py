@@ -9,8 +9,8 @@ class ProblemDao:
         cursor = DatabaseConnection().cursor()
 
         # 이미 해당 값이 존재하는지 확인
-        select_sql = "SELECT `key` FROM problem WHERE `key` = %s"
-        select_params = (problem.key,)
+        select_sql = "SELECT * FROM problem JOIN problem_category ON problem.id=problem_category.problem_id WHERE `problem.key` = %s AND `problem_category.category_id` = %s"
+        select_params = (problem.key, problem.categoryId)
         problemKey = cursor.execute(select_sql, select_params)
         exist = cursor.fetchone()
 
@@ -39,13 +39,13 @@ class ProblemDao:
             cursor.execute(insert_sql, insert_params)
             problemId = cursor.lastrowid
 
-        # problem_category에 삽입
-        if problemId and problem.categoryId:
-            insert_category_sql = """
-            INSERT IGNORE INTO problem_category (problem_id, category_id)
-            VALUES (%s, %s)
-            """
-            cursor.execute(insert_category_sql, (problemId, problem.categoryId), )
+            # problem_category에 삽입
+            if problemId and problem.categoryId:
+                insert_category_sql = """
+                INSERT IGNORE INTO problem_category (problem_id, category_id)
+                VALUES (%s, %s)
+                """
+                cursor.execute(insert_category_sql, (problemId, problem.categoryId), )
 
         # 변경 사항을 커밋
         DatabaseConnection().commit()
