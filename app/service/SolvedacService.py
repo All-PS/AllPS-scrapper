@@ -18,7 +18,7 @@ from app.util.SlackBot import SlackBot
 def crawlSolvedac():
     driver = ChromeDriver()
     wait = WebDriverWait(driver, 10)
-    SlackBot.alert("feat/ Solvedac 크롤링이 시작되었습니다.")
+    SlackBot.alert("Solvedac 크롤링이 시작되었습니다.")
     crawlTags(driver, wait)
 
 
