@@ -44,11 +44,11 @@ def crawlPages(driver, wait, url, cId):
         getProblemData(driver, wait, cId)
 
         # 5페이지마다 트랜젝션 커밋
-        if page % 5 == 0:
+        if page % 5 == 0 || page == pages:
             DatabaseConnection.commitTransaction()
             DatabaseConnection.startTransaction()
 
-        time.sleep(random.uniform(4, 6))
+        time.sleep(random.uniform(8, 12))
 
 
 def getPageNumber(driver):
