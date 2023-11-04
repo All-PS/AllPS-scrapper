@@ -2,3 +2,4 @@ venv/
 .idea/
 .DS_store
 /app/settings.py
+.venv

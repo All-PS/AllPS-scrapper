@@ -13,6 +13,7 @@ class ChromeDriver:
             options.add_argument("--no-sandbox")
             options.add_argument("--disable-dev-shm-usage")
             options.add_argument("--disable-gpu")
+
             service = Service(executable_path=ChromeDriverManager().install())
             cls._instance = webdriver.Chrome(service=service, options=options)
         return cls._instance
