@@ -18,7 +18,7 @@ from app.util.SlackBot import SlackBot
 def crawlSolvedac():
     driver = ChromeDriver()
     wait = WebDriverWait(driver, 10)
-    SlackBot.alert("Solvedac 크롤링이 시작되었습니다.")
+    SlackBot.alert("dev/ Solvedac 크롤링이 시작되었습니다.")
     crawlTags(driver, wait)
 
 
@@ -73,12 +73,13 @@ def getProblemData(driver, wait, cId):
 
     for row in rows:
         # 각 컬럼의 데이터 추출
-        key = row.find_element(By.CSS_SELECTOR, 'span.css-1raije9 a span').text
+        code = row.find_element(By.CSS_SELECTOR, 'span.css-1raije9 a span').text
         name = row.find_element(By.CSS_SELECTOR, 'span.css-1oteowz').text
-        url = "https://www.acmicpc.net/problem/" + key
+        url = "https://www.acmicpc.net/problem/" + code
         now = datetime.now(pytz.timezone('Asia/Seoul')).strftime('%Y-%m-%d %H:%M:%S')
         tier = row.find_element(By.CSS_SELECTOR, 'img.css-1vnxcg0').get_attribute('alt')
+        solved_count = int(row.find_element(By.CSS_SELECTOR, 'div.css-1ujcjo0').text.replace(",", ""))
 
-        problem = BaekjoonProblem(key=key, name=name, url=url, updatedAt=now, platformId=1, difficultyId=tier,
-                                  categoryId=cId)
+        problem = BaekjoonProblem(code=code, name=name, url=url, updatedAt=now, platformId=1, difficultyId=tier,
+                                  categoryId=cId, solved_count=solved_count)
         ProblemDao.save(problem)
