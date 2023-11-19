@@ -13,6 +13,7 @@ from app.provider.BaekjoonProvider import tags
 from app.util.ChromeDriver import ChromeDriver
 from app.util.DatabaseConnection import DatabaseConnection
 from app.util.SlackBot import SlackBot
+from app.util.ErrorLogger import errorLog
 
 
 def crawlSolvedac():
