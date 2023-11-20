@@ -1,6 +1,6 @@
 class Problem:
 
-    def __init__(self, code, name, url, updatedAt, difficultyId, platformId, categoryId, solved_count):
+    def __init__(self, code, name, url, updatedAt, difficultyId, platformId, categoryId, solvedCount, realDifficulty):
         self.code = code
         self.name = name
         self.url = url
@@ -8,4 +8,5 @@ class Problem:
         self.difficultyId = difficultyId
         self.platformId = platformId
         self.categoryId = categoryId
-        self.solved_count = solved_count
+        self.solvedCount = solvedCount
+        self.realDifficulty = realDifficulty

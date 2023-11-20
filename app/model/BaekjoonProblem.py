@@ -6,9 +6,9 @@ from app.provider.BaekjoonProvider import tiers
 
 class BaekjoonProblem(Problem):
 
-    def __init__(self, code, name, url, updatedAt, difficultyId, platformId, categoryId, solved_count):
+    def __init__(self, code, name, url, updatedAt, difficultyId, platformId, categoryId, solvedCount, realDifficulty):
         super().__init__(code, name, url, updatedAt, self.__toEntity(difficultyId), platformId, categoryId,
-                         solved_count)
+                         solvedCount, realDifficulty)
 
     # todo platform 리스트 작성 & 반환 구현
 
