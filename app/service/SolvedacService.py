@@ -15,6 +15,8 @@ from app.util.DatabaseConnection import DatabaseConnection
 from app.util.SlackBot import SlackBot
 from app.util.ErrorLogger import errorLog
 
+service = "solvedac"
+
 
 def crawlSolvedac():
     driver = ChromeDriver()
@@ -64,6 +66,7 @@ def openPage(driver, link):
         driver.get(link)
     except Exception as e:
         SlackBot.alert(f"페이지 열기 실패: {link}\nException: {e}")
+        errorLog(service, link, "NULL", e)
 
 
 def openProblemSetPage(driver, link, page):
@@ -71,6 +74,7 @@ def openProblemSetPage(driver, link, page):
         driver.get(link + "?page=" + str(page))
     except Exception as e:
         SlackBot.alert(f"페이지 열기 실패: {link}\nException: {e}")
+        errorLog(service, link, page, e)
 
 
 def getProblemData(driver, wait, cId, page):
@@ -80,6 +84,7 @@ def getProblemData(driver, wait, cId, page):
         rows.pop(0)
     except Exception as e:
         SlackBot.alert(cId, page, "페이지 크롤링 실패\n Exception: ", e)
+        errorLog(service, cId, page, e)
         return
 
     for row in rows:
@@ -96,4 +101,5 @@ def getProblemData(driver, wait, cId, page):
             ProblemDao.save(problem)
         except Exception as e:
             SlackBot.alert(f"{page}페이지 데이터 처리 중 오류: {e}")
+            errorLog(service, cId, page, e)
             continue
