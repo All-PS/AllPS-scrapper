@@ -19,8 +19,7 @@ from app.util.ErrorLogger import errorLog
 def crawlSolvedac():
     driver = ChromeDriver()
     wait = WebDriverWait(driver, 10)
-    # SlackBot.alert("dev/ Solvedac 크롤링이 시작되었습니다.")
-    print("dev/ Solvedac 크롤링이 시작되었습니다.\n")
+    SlackBot.alert("dev/ Solvedac 크롤링이 시작되었습니다.")
     crawlTags(driver, wait)
 
 
@@ -33,8 +32,7 @@ def crawlTags(driver, wait):
             openPage(driver, url)
             crawlPages(driver, wait, url, cId + 1)
 
-        # SlackBot.alert(f"Solvedac {category} 태그의 크롤링이 완료되었습니다.")
-        print(f"Solvedac {category} 태그의 크롤링이 완료되었습니다.\n")
+        SlackBot.alert(f"Solvedac {category} 태그의 크롤링이 완료되었습니다.")
 
 
 def crawlPages(driver, wait, url, cId):
@@ -65,16 +63,14 @@ def openPage(driver, link):
     try:
         driver.get(link)
     except Exception as e:
-        # SlackBot.alert(f"페이지 열기 실패: {link}\nException: {e}")
-        print(f"페이지 열기 실패: {link} / Exception: {e}\n")
+        SlackBot.alert(f"페이지 열기 실패: {link}\nException: {e}")
 
 
 def openProblemSetPage(driver, link, page):
     try:
         driver.get(link + "?page=" + str(page))
     except Exception as e:
-        # SlackBot.alert(f"페이지 열기 실패: {link}\nException: {e}")
-        print(f"페이지 열기 실패: {link} page= {page} / Exception: {e}\n")
+        SlackBot.alert(f"페이지 열기 실패: {link}\nException: {e}")
 
 
 def getProblemData(driver, wait, cId, page):
@@ -83,8 +79,7 @@ def getProblemData(driver, wait, cId, page):
         rows = driver.find_elements(By.CSS_SELECTOR, 'tr.css-1ojb0xa')
         rows.pop(0)
     except Exception as e:
-        # SlackBot.alert(cId, page, "페이지 크롤링 실패\n Exception: ", e)
-        print(f"{cId}카테고리 {page}페이지 크롤링 실패 / Exception: {e}\n")
+        SlackBot.alert(cId, page, "페이지 크롤링 실패\n Exception: ", e)
         return
 
     for row in rows:
@@ -100,6 +95,5 @@ def getProblemData(driver, wait, cId, page):
                                       categoryId=cId, solvedCount=solvedCount, realDifficulty=tier, )
             ProblemDao.save(problem)
         except Exception as e:
-            # SlackBot.alert(f"{page}페이지 데이터 처리 중 오류: {e}")
-            print(f"{page}페이지 데이터 처리 중 오류 / Exception: {e}\n")
+            SlackBot.alert(f"{page}페이지 데이터 처리 중 오류: {e}")
             continue
