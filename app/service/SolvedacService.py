@@ -13,17 +13,20 @@ from app.provider.BaekjoonProvider import tags
 from app.util.ChromeDriver import ChromeDriver
 from app.util.DatabaseConnection import DatabaseConnection
 from app.util.SlackBot import SlackBot
+from app.util.ErrorLogger import errorLog
+
+service = "solvedac"
 
 
 def crawlSolvedac():
     driver = ChromeDriver()
     wait = WebDriverWait(driver, 10)
-    SlackBot.alert("dev/ Solvedac 크롤링이 시작되었습니다.")
+    SlackBot.alert("Solvedac 크롤링이 시작되었습니다.")
     crawlTags(driver, wait)
 
 
 def crawlTags(driver, wait):
-    for cId in range(0, len(tags)):
+    for cId in range(2, len(tags)):
         category = tags[cId][0]
         pageUrls = tags[cId][1:]
         # 태그 별 문제 정보 크롤링
@@ -37,11 +40,11 @@ def crawlTags(driver, wait):
 def crawlPages(driver, wait, url, cId):
     # 태그 내 페이지 수
     pages = getPageNumber(driver, wait)
-    for page in range(1, pages + 1):
+    for page in range(34, pages + 1):
         openProblemSetPage(driver, url, page)
         DatabaseConnection.startTransaction()
 
-        getProblemData(driver, wait, cId)
+        getProblemData(driver, wait, cId, page)
 
         # 5페이지마다 트랜젝션 커밋
         if page % 5 == 0 or page == pages:
@@ -59,27 +62,44 @@ def getPageNumber(driver, wait):
 
 
 def openPage(driver, link):
-    driver.get(link)
+    try:
+        driver.get(link)
+    except Exception as e:
+        SlackBot.alert(f"페이지 열기 실패: {link} / Exception: {e}\n")
+        errorLog(service, link, "NULL", e)
 
 
 def openProblemSetPage(driver, link, page):
-    driver.get(link + "?page=" + str(page))
+    try:
+        driver.get(link + "?page=" + str(page))
+    except Exception as e:
+        SlackBot.alert(f"페이지 열기 실패: {link} page= {page} / Exception: {e}\n")
+        errorLog(service, link, page, e)
 
 
-def getProblemData(driver, wait, cId):
-    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'tr.css-1ojb0xa')))
-    rows = driver.find_elements(By.CSS_SELECTOR, 'tr.css-1ojb0xa')
-    rows.pop(0)
+def getProblemData(driver, wait, cId, page):
+    try:
+        wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'tr.css-1ojb0xa')))
+        rows = driver.find_elements(By.CSS_SELECTOR, 'tr.css-1ojb0xa')
+        rows.pop(0)
+    except Exception as e:
+        SlackBot.alert(f"{cId}카테고리 {page}페이지 크롤링 실패 / Exception: {e}\n")
+        errorLog(service, cId, page, e)
+        return
 
     for row in rows:
-        # 각 컬럼의 데이터 추출
-        code = row.find_element(By.CSS_SELECTOR, 'span.css-1raije9 a span').text
-        name = row.find_element(By.CSS_SELECTOR, 'span.css-1oteowz').text
-        url = "https://www.acmicpc.net/problem/" + code
-        now = datetime.now(pytz.timezone('Asia/Seoul')).strftime('%Y-%m-%d %H:%M:%S')
-        tier = row.find_element(By.CSS_SELECTOR, 'img.css-1vnxcg0').get_attribute('alt')
-        solved_count = int(row.find_element(By.CSS_SELECTOR, 'div.css-1ujcjo0').text.replace(",", ""))
+        try:
+            code = row.find_element(By.CSS_SELECTOR, 'span.css-1raije9 a span').text
+            name = row.find_element(By.CSS_SELECTOR, 'span.css-1oteowz').text
+            url = "https://www.acmicpc.net/problem/" + code
+            now = datetime.now(pytz.timezone('Asia/Seoul')).strftime('%Y-%m-%d %H:%M:%S')
+            tier = row.find_element(By.CSS_SELECTOR, 'img.css-1vnxcg0').get_attribute('alt')
+            solvedCount = int(row.find_element(By.CSS_SELECTOR, 'div.css-1ujcjo0').text.replace(",", ""))
 
-        problem = BaekjoonProblem(code=code, name=name, url=url, updatedAt=now, platformId=1, difficultyId=tier,
-                                  categoryId=cId, solved_count=solved_count)
-        ProblemDao.save(problem)
+            problem = BaekjoonProblem(code=code, name=name, url=url, updatedAt=now, platformId=1, difficultyId=tier,
+                                      categoryId=cId, solvedCount=solvedCount, realDifficulty=tier, )
+            ProblemDao.save(problem)
+        except Exception as e:
+            SlackBot.alert(f"{cId}카테고리 {page}페이지 데이터 처리 중 오류 / Exception: {e}\n")
+            errorLog(service, cId, page, e)
+            continue

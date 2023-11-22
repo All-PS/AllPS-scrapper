@@ -11,7 +11,7 @@ tags = [
      "https://solved.ac/problems/tags/dfs", "https://solved.ac/problems/tags/bfs"],
     ["투 포인터", "https://solved.ac/problems/tags/two_pointer", "https://solved.ac/problems/tags/sliding_window"],
     ["트리", "https://solved.ac/problems/tags/trees"],
-    ["우선순위 큐", "https://solved.ac/problems/tags/proiroty_queue"],
+    ["우선순위 큐", "https://solved.ac/problems/tags/priority_queue"],
     ["자료구조", "https://solved.ac/problems/tags/data_structures"],
     ["최단거리", "https://solved.ac/problems/tags/shortest_path", "https://solved.ac/problems/tags/dijkstra",
      "https://solved.ac/problems/tags/floyd_warshall", "https://solved.ac/problems/tags/bellman_ford"],
@@ -29,7 +29,7 @@ tags = [
     ["최소신장트리", "https://solved.ac/problems/tags/mst"],
     ["세그먼트트리", "https://solved.ac/problems/tags/segtree"],
     ["비트마스킹", "https://solved.ac/problems/tags/bitmask"],
-    ["유량문제", "https://solved.ac/problems/tags/bipartite_matching", "https://solved.ac/problems/tags/flow"]
+    ["유량", "https://solved.ac/problems/tags/bipartite_matching", "https://solved.ac/problems/tags/flow"]
 ]
 
 tiers = [

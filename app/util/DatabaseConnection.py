@@ -1,6 +1,6 @@
 import MySQLdb
-
 from app import settings
+
 
 class DatabaseConnection:
     _instance = None
