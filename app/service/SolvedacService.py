@@ -26,7 +26,7 @@ def crawlSolvedac():
 
 
 def crawlTags(driver, wait):
-    for cId in range(0, len(tags)):
+    for cId in range(2, len(tags)):
         category = tags[cId][0]
         pageUrls = tags[cId][1:]
         # 태그 별 문제 정보 크롤링
@@ -40,7 +40,7 @@ def crawlTags(driver, wait):
 def crawlPages(driver, wait, url, cId):
     # 태그 내 페이지 수
     pages = getPageNumber(driver, wait)
-    for page in range(1, pages + 1):
+    for page in range(34, pages + 1):
         openProblemSetPage(driver, url, page)
         DatabaseConnection.startTransaction()
 
@@ -65,7 +65,7 @@ def openPage(driver, link):
     try:
         driver.get(link)
     except Exception as e:
-        SlackBot.alert(f"페이지 열기 실패: {link}\nException: {e}")
+        SlackBot.alert(f"페이지 열기 실패: {link} / Exception: {e}\n")
         errorLog(service, link, "NULL", e)
 
 
@@ -73,7 +73,7 @@ def openProblemSetPage(driver, link, page):
     try:
         driver.get(link + "?page=" + str(page))
     except Exception as e:
-        SlackBot.alert(f"페이지 열기 실패: {link}\nException: {e}")
+        SlackBot.alert(f"페이지 열기 실패: {link} page= {page} / Exception: {e}\n")
         errorLog(service, link, page, e)
 
 
@@ -83,7 +83,7 @@ def getProblemData(driver, wait, cId, page):
         rows = driver.find_elements(By.CSS_SELECTOR, 'tr.css-1ojb0xa')
         rows.pop(0)
     except Exception as e:
-        SlackBot.alert(cId, page, "페이지 크롤링 실패\n Exception: ", e)
+        SlackBot.alert(f"{cId}카테고리 {page}페이지 크롤링 실패 / Exception: {e}\n")
         errorLog(service, cId, page, e)
         return
 
@@ -100,6 +100,6 @@ def getProblemData(driver, wait, cId, page):
                                       categoryId=cId, solvedCount=solvedCount, realDifficulty=tier, )
             ProblemDao.save(problem)
         except Exception as e:
-            SlackBot.alert(f"{page}페이지 데이터 처리 중 오류: {e}")
+            SlackBot.alert(f"{cId}카테고리 {page}페이지 데이터 처리 중 오류 / Exception: {e}\n")
             errorLog(service, cId, page, e)
             continue
