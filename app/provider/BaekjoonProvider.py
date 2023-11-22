@@ -29,7 +29,7 @@ tags = [
     ["최소신장트리", "https://solved.ac/problems/tags/mst"],
     ["세그먼트트리", "https://solved.ac/problems/tags/segtree"],
     ["비트마스킹", "https://solved.ac/problems/tags/bitmask"],
-    ["유량문제", "https://solved.ac/problems/tags/bipartite_matching", "https://solved.ac/problems/tags/flow"]
+    ["유량", "https://solved.ac/problems/tags/bipartite_matching", "https://solved.ac/problems/tags/flow"]
 ]
 
 tiers = [
