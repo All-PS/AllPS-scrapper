@@ -48,6 +48,18 @@ class ProblemDao:
             """
             cursor.execute(insert_category_sql, (problemId, problem.categoryId), )
 
+        # todo. 코드포스 카테고리 전처리 후 반영..
+        # if problemId:
+        #     # categoryId가 문자열이면 쉼표로 분리, 리스트면 그대로 사용
+        #     category_ids = problem.categoryId.split(',') if isinstance(problem.categoryId, str) else problem.categoryId
+        #
+        #     for cat_id in category_ids:
+        #         insert_category_sql = """
+        #         INSERT IGNORE INTO problem_category (problem_id, category_id)
+        #         VALUES (%s, %s)
+        #         """
+        #         cursor.execute(insert_category_sql, (problemId, cat_id))
+
         # 변경 사항을 커밋
         DatabaseConnection().commit()
         return problemCode
