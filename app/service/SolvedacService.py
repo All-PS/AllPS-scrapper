@@ -89,7 +89,6 @@ def getProblemData(driver, wait, page):
     else:
         for row in rows:
             try:
-                print(row.text)
                 code = row.find_element(By.CSS_SELECTOR, 'span.css-1raije9 a span').text
                 name = row.find_element(By.CSS_SELECTOR, 'span.css-1oteowz').text
                 url = "https://www.acmicpc.net/problem/" + code
