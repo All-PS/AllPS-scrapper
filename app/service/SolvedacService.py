@@ -33,19 +33,19 @@ def crawlTags(driver, wait):
         for url in pageUrls:
             openPage(driver, url)
             logger.setIndex1(category + url.split('/')[-1])
-            crawlPages(driver, wait, url)
+            crawlPages(driver, wait, url, cId + 1)
 
         logger.log(f"Solvedac {category} 태그의 크롤링이 완료되었습니다.")
 
 
-def crawlPages(driver, wait, url):
+def crawlPages(driver, wait, url, cid):
     # 태그 내 페이지 수
     pages = getPageNumber(driver, wait)
     for page in range(0, pages + 1):
         openProblemSetPage(driver, url, page)
         DatabaseConnection.startTransaction()
 
-        getProblemData(driver, wait, page)
+        getProblemData(driver, wait, page, cid)
 
         # 5페이지마다 트랜젝션 커밋
         if page % 5 == 0 or page == pages:
@@ -78,7 +78,7 @@ def openProblemSetPage(driver, link, page):
         logger.logError(link + "?page=" + str(page), e)
 
 
-def getProblemData(driver, wait, page):
+def getProblemData(driver, wait, page, cid):
     try:
         wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'tr.css-1ojb0xa')))
         rows = driver.find_elements(By.CSS_SELECTOR, 'tr.css-1ojb0xa')
@@ -97,7 +97,7 @@ def getProblemData(driver, wait, page):
                 solvedCount = int(row.find_element(By.CSS_SELECTOR, 'div.css-1ujcjo0').text.replace(",", ""))
 
                 problem = BaekjoonProblem(code=code, name=name, url=url, updatedAt=now, platformId=1, difficultyId=tier,
-                                          categoryId=cId, solvedCount=solvedCount, realDifficulty=tier, )
+                                          categoryId=cid, solvedCount=solvedCount, realDifficulty=tier, )
                 ProblemDao.save(problem)
             except Exception as e:
                 logger.log(f"{logger.getIndex1()}카테고리 {page}페이지 문제 데이터 처리 중 오류 / Exception: {e}\n")
