@@ -8,7 +8,7 @@ from app.util.ChromeDriver import ChromeDriver
 def main():
     # 플랫폼별 크롤링
     while True:
-        crawlSolvedac()
+        #crawlSolvedac()
         crawlProgrammers()
 
     # DB 연결 끊기
