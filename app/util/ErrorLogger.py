@@ -1,5 +1,8 @@
 from app.util.SlackBot import SlackBot
 
+def errorLog(service, index1, index2, errMessage):
+    with open(f"log/{service}ErrorLog.txt", "w") as file:
+        file.write(f"Index1: {index1}, Index2:{index2}, Error: {errMessage}\n")
 
 class ErrorLogger:
     def __init__(self, service, slackAlert='0', index1=None):
