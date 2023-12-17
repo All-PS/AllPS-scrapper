@@ -10,8 +10,6 @@ class BaekjoonProblem(Problem):
         super().__init__(code, name, url, updatedAt, self.__toEntity(difficultyId), platformId, categoryId,
                          solvedCount, realDifficulty)
 
-    # todo platform 리스트 작성 & 반환 구현
-
     def __toEntity(self, tier_string):
         for tier_id, tier_name in tiers:
             if tier_name.lower() == tier_string.lower():
