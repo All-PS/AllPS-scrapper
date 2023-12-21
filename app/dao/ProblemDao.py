@@ -1,65 +1,106 @@
-from app.util.DatabaseConnection import DatabaseConnection
+from datetime import datetime
 
 
 class ProblemDao:
 
-    # @staticmethod
-    def save(problem):
-        # 커서 가져오기
-        cursor = DatabaseConnection().cursor()
+    def __init__(self, dbConnection):
+        self.dbConnection = dbConnection
+        self.dbConnection.autocommit = False
 
-        # 이미 해당 값이 존재하는지 확인
-        select_sql = "SELECT * FROM problem WHERE problem.code = %s AND problem.platform_id = %s"
-        select_params = (problem.code, problem.platformId)
-        problemCode = cursor.execute(select_sql, select_params)
-        exist = cursor.fetchone()
+    def save(self, problem, platform, platformCategories, platformDifficulty):
+        try:
+            with self.dbConnection.cursor() as cursor:
+                platformId = self._insertPlatform(cursor, platform)
+                platformCategoryIds = self._insertPlatformCategories(cursor, platformCategories, platformId)
+                platformDifficultyId = self._insertPlatformDifficulty(cursor, platformDifficulty, platformId)
+                problemId = self._insertProblem(cursor, problem, platformId, platformCategoryIds, platformDifficultyId)
+        except Exception as e:
+            raise e
 
-        if exist:
-            # 이미 해당 값이 존재하면 업데이트
-            update_sql = """
-                UPDATE problem
-                SET name = %s, url = %s, updated_at = %s, difficulty_id = %s, platform_id = %s, solved_count = %s, real_difficulty = %s
-                WHERE code = %s
-            """
-            update_params = (
-                problem.name, problem.url, problem.updatedAt, problem.difficultyId, problem.platformId,
-                problem.solvedCount, problem.realDifficulty, problem.code,)
-            cursor.execute(update_sql, update_params)
-            # DB에서 문제의 ID
-            problemId = exist[0]
+    def _checkPlatformExists(self, cursor, platform):
+        check_query = "SELECT id FROM platform WHERE name = %s"
+        cursor.execute(check_query, (platform.name,))
+        return cursor.fetchone()
+
+    def _checkPlatformCategoryExists(self, cursor, platformCategory, platformId):
+        check_query = "SELECT id FROM platform_category WHERE name = %s AND platform_id = %s"
+        cursor.execute(check_query, (platformCategory.name, platformId))
+        return cursor.fetchone()
+
+    def _checkPlatformDifficultyExists(self, cursor, platformDifficulty, platformId):
+        check_query = "SELECT id FROM platform_difficulty WHERE name = %s AND platform_id = %s"
+        cursor.execute(check_query, (platformDifficulty.name, platformId))
+        return cursor.fetchone()
+
+    def _checkProblemExists(self, cursor, problem, platformId):
+        check_query = "SELECT id FROM problem WHERE code = %s AND platform_id = %s"
+        cursor.execute(check_query, (problem.code, platformId))
+        return cursor.fetchone()
+
+    def _insertPlatform(self, cursor, platform):
+        existing_platform = self._checkPlatformExists(cursor, platform)
+        if existing_platform:
+            return existing_platform[0]
+
+        platform_query = "INSERT INTO platform (name, url) VALUES (%s, %s)"
+        cursor.execute(platform_query, (platform.name, platform.url))
+        return cursor.lastrowid
+
+    def _insertPlatformCategories(self, cursor, platformCategories, platformId):
+        platformCategoryIds = []
+        for platformCategory in platformCategories:
+            existing_category = self._checkPlatformCategoryExists(cursor, platformCategory, platformId)
+
+            if existing_category:
+                platformCategoryId = existing_category[0]
+
+            else:
+                category_query = "INSERT INTO platform_category (name, platform_id) VALUES (%s, %s)"
+                cursor.execute(category_query, (platformCategory.name, platformId))
+                platformCategoryId = cursor.lastrowid
+
+            platformCategoryIds.append(platformCategoryId)
+        return platformCategoryIds
+
+    def _insertPlatformDifficulty(self, cursor, platformDifficulty, platformId):
+        existing_difficulty = self._checkPlatformDifficultyExists(cursor, platformDifficulty, platformId)
+        if existing_difficulty:
+            return existing_difficulty[0]
+
+        difficulty_query = "INSERT INTO platform_difficulty (name, platform_id) VALUES (%s, %s)"
+        cursor.execute(difficulty_query, (platformDifficulty.name, platformId))
+        return cursor.lastrowid
+
+    def _insertProblem(self, cursor, problem, platformId, platformCategoryIds, platformDifficultyId):
+        existing_problem = self._checkProblemExists(cursor, problem, platformId)
+        if existing_problem:
+            problemId = existing_problem[0]
+            self._updateProblem(cursor, problem, problemId, platformCategoryIds, platformDifficultyId)
 
         else:
-            # 값이 존재하지 않으면 인서트
-            insert_sql = """
-                INSERT INTO problem (code, name, url, updated_at, difficulty_id, platform_id, solved_count, real_difficulty)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            """
-            insert_params = (
-                problem.code, problem.name, problem.url, problem.updatedAt, problem.difficultyId, problem.platformId,
-                problem.solvedCount, problem.realDifficulty,)
-            cursor.execute(insert_sql, insert_params)
+            insert_query = "INSERT INTO problem (code, name, url, solved_count, platform_id, platform_difficulty_id, difficulty_id) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+            cursor.execute(insert_query, (problem.code, problem.name, problem.url, problem.solvedCount, platformId, platformDifficultyId, 1))
             problemId = cursor.lastrowid
 
-        # problem_category에 삽입
-        if problemId and problem.categoryId:
-            insert_category_sql = """
-            INSERT IGNORE INTO problem_category (problem_id, category_id)
-            VALUES (%s, %s)
-            """
-            cursor.execute(insert_category_sql, (problemId, problem.categoryId), )
+            for platformCategoryId in platformCategoryIds:
+                problem_category_query = "INSERT INTO problem_platform_category (problem_id, platform_category_id) VALUES (%s, %s)"
+                cursor.execute(problem_category_query, (problemId, platformCategoryId))
+        return problemId
 
-        # todo. 코드포스 카테고리 전처리 후 반영..
-        # if problemId:
-        #     # categoryId가 문자열이면 쉼표로 분리, 리스트면 그대로 사용
-        #     category_ids = problem.categoryId.split(',') if isinstance(problem.categoryId, str) else problem.categoryId
-        #
-        #     for cat_id in category_ids:
-        #         insert_category_sql = """
-        #         INSERT IGNORE INTO problem_category (problem_id, category_id)
-        #         VALUES (%s, %s)
-        #         """
-        #         cursor.execute(insert_category_sql, (problemId, cat_id))
+    def _updateProblem(self, cursor, problem, problemId, platformCategoryIds, platformDifficultyId):
+        update_query = "UPDATE problem SET name = %s, url = %s, updated_at = %s, solved_count = %s, platform_difficulty_id = %s, difficulty_id = %s WHERE id = %s"
+        cursor.execute(update_query, (problem.name, problem.url, datetime.now(), problem.solvedCount, platformDifficultyId, 1, problemId))
 
-        # 변경 사항을 커밋
-        DatabaseConnection().commit()
-        return problemCode
+        if platformCategoryIds:
+            delete_query = "DELETE FROM problem_platform_category WHERE problem_id = %s AND platform_category_id NOT IN %s"
+            cursor.execute(delete_query, (problemId, tuple(platformCategoryIds)))
+        else:
+            delete_all_query = "DELETE FROM problem_platform_category WHERE problem_id = %s"
+            cursor.execute(delete_all_query, (problemId,))
+
+        for platformCategoryId in platformCategoryIds:
+            check_query = "SELECT 1 FROM problem_platform_category WHERE problem_id = %s AND platform_category_id = %s"
+            cursor.execute(check_query, (problemId, platformCategoryId))
+            if not cursor.fetchone():
+                insert_query = "INSERT INTO problem_platform_category (problem_id, platform_category_id) VALUES (%s, %s)"
+                cursor.execute(insert_query, (problemId, platformCategoryId))
