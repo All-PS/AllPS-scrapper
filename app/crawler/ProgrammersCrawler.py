@@ -8,18 +8,20 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from app.config.DriverConfig import DriverConfig
 from app.crawler.BaseCrawler import BaseCrawler
-from app.dto.ProgrammersProblem import ProgrammersProblem
-from app.service.ProgrammersService import ProgrammersService
+from app.dto.ProblemDto import ProblemDto
+from app.service.ProblemService import ProblemService
 
 
 class ProgrammersCrawler(BaseCrawler):
+    PLATFORM_NAME = "programmers"
+    PLATFORM_URL = "https://programmers.co.kr/"
     BASE_URL = "https://school.programmers.co.kr/learn/challenges?order=acceptance_desc"
 
     def __init__(self, notification, stopEvent):
         self.driver = None
         self.wait = None
         self.notification = notification
-        self.programmersService = ProgrammersService(notification)
+        self.problemService = ProblemService(notification, self.PLATFORM_NAME, self.PLATFORM_URL)
         self.stopEvent = stopEvent
 
     def cleanup(self):
@@ -60,9 +62,9 @@ class ProgrammersCrawler(BaseCrawler):
             rows = self.driver.find_elements(By.XPATH, '//tbody/tr')
 
             for row in rows:
-                programmersProblem = self.getProblemDetail(row)
-                if programmersProblem:
-                    self.programmersService.saveProblem(programmersProblem)
+                problemDto = self.getProblemDetail(row)
+                if problemDto:
+                    self.problemService.saveProblem(problemDto)
 
         except Exception as e:
             self.notification.alert(f"[Error] Programmers 문제 페이지({page})를 불러오지 못했습니다. 다음 페이지로 넘어갑니다.")
@@ -76,7 +78,7 @@ class ProgrammersCrawler(BaseCrawler):
             solvedCount = int(
                 row.find_element(By.CSS_SELECTOR, 'td.finished-count').text.replace('명', '').replace(',', ''))
             platformDifficulty = row.find_element(By.CSS_SELECTOR, 'td.level span').text
-            return ProgrammersProblem(code, name, url, solvedCount, platformDifficulty)
+            return ProblemDto(code, name, url, platformDifficulty, solvedCount)
 
         except Exception as e:
             if code:

@@ -1,8 +1,4 @@
-from abc import ABC, abstractmethod
+class BaseCrawler:
 
-
-class BaseCrawler(ABC):
-
-    @abstractmethod
     def start(self):
-        pass
+        raise NotImplementedError("Subclasses should implement this method")

@@ -25,8 +25,8 @@ def runCrawler(crawler, notification, crawlerName, stopEvent):
 def main():
     stopEvent = threading.Event()
 
-    notification = SlackNotification()
-    # notification = ConsoleNotification()
+    # notification = SlackNotification()
+    notification = ConsoleNotification()
 
     solvedacCrawler = SolvedacCrawler(notification, stopEvent)
     codeforcesCrawler = CodeforcesCrawler(notification, stopEvent)
