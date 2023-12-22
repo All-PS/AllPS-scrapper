@@ -1,26 +1,27 @@
 from app.config.DatabaseConfig import DatabaseConfig
 from app.dao.ProblemDao import ProblemDao
 from app.entity.Platform import Platform
+from app.entity.PlatformCategory import PlatformCategory
 from app.entity.PlatformDifficulty import PlatformDifficulty
 from app.entity.Problem import Problem
-from app.service.BaseService import BaseService
 
 
-class ProgrammersService(BaseService):
-    PLATFORM_NAME = "programmers"
-    PLATFORM_URL = "https://programmers.co.kr/"
-
-    def __init__(self, notification):
+class ProblemService():
+    def __init__(self, notification, platformName, platformUrl):
         databaseConfig = DatabaseConfig()
         self.dbConnection = databaseConfig.getConnection()
         self.problemDao = ProblemDao(self.dbConnection)
         self.notification = notification
+        self.platformName = platformName
+        self.platformUrl = platformUrl
 
-    def saveProblem(self, programmersProblem):
-        platform = Platform(self.PLATFORM_NAME, self.PLATFORM_URL)
-        platformDifficulty = PlatformDifficulty(programmersProblem.platformDifficulty)
-        problem = Problem(programmersProblem.code, programmersProblem.name, programmersProblem.url, programmersProblem.solvedCount)
+    def saveProblem(self, problemDto):
+        platform = Platform(self.platformName, self.platformUrl)
+        platformDifficulty = PlatformDifficulty(problemDto.platformDifficulty)
+        problem = Problem(problemDto.code, problemDto.name, problemDto.url, problemDto.solvedCount)
         platformCategories = []
+        for platformCategoryName in problemDto.platformCategories:
+            platformCategories.append(PlatformCategory(platformCategoryName))
 
         try:
             self.dbConnection.begin()

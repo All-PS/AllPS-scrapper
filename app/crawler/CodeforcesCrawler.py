@@ -7,18 +7,20 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from app.config.DriverConfig import DriverConfig
 from app.crawler.BaseCrawler import BaseCrawler
-from app.dto.CodeforcesProblem import CodeforcesProblem
-from app.service.CodeforcesService import CodeforcesService
+from app.dto.ProblemDto import ProblemDto
+from app.service.ProblemService import ProblemService
 
 
 class CodeforcesCrawler(BaseCrawler):
+    PLATFORM_NAME = "codeforces"
+    PLATFORM_URL = "https://codeforces.com/"
     BASE_URL = "https://codeforces.com/problemset/page/"
 
     def __init__(self, notification, stopEvent):
         self.driver = None
         self.wait = None
         self.notification = notification
-        self.codeforcesService = CodeforcesService(notification)
+        self.problemService = ProblemService(notification, self.PLATFORM_NAME, self.PLATFORM_URL)
         self.stopEvent = stopEvent
 
     def cleanup(self):
@@ -57,9 +59,9 @@ class CodeforcesCrawler(BaseCrawler):
             rows = self.driver.find_elements(By.XPATH, '//tbody/tr')[1:-1]
 
             for row in rows:
-                codeforcesProblem = self.getProblemDetail(row)
-                if codeforcesProblem:
-                    self.codeforcesService.saveProblem(codeforcesProblem)
+                problemDto = self.getProblemDetail(row)
+                if problemDto:
+                    self.problemService.saveProblem(problemDto)
 
 
         except Exception as e:
@@ -74,7 +76,7 @@ class CodeforcesCrawler(BaseCrawler):
             solvedCount = self.getSolvedCount(row)
             platformDifficulty = self.getPlatformDifficulty(row)
             platformCategories = self.getPlatformCategories(row)
-            return CodeforcesProblem(code, name, url, solvedCount, platformDifficulty, platformCategories)
+            return ProblemDto(code, name, url, platformDifficulty, solvedCount, platformCategories)
 
         except Exception as e:
             if code:

@@ -7,18 +7,20 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from app.config.DriverConfig import DriverConfig
 from app.crawler.BaseCrawler import BaseCrawler
-from app.dto.SolvedacProblem import SolvedacProblem
-from app.service.SolvedacService import SolvedacService
+from app.dto.ProblemDto import ProblemDto
+from app.service.ProblemService import ProblemService
 
 
 class SolvedacCrawler(BaseCrawler):
+    PLATFORM_NAME = "baekjoon"
+    PLATFORM_URL = "https://www.acmicpc.net/"
     BASE_URL = "https://solved.ac"
 
     def __init__(self, notification, stopEvent):
         self.driver = None
         self.wait = None
         self.notification = notification
-        self.solvedacService = SolvedacService(notification)
+        self.problemService = ProblemService(notification, self.PLATFORM_NAME, self.PLATFORM_URL)
         self.stopEvent = stopEvent
 
     def cleanup(self):
@@ -88,10 +90,10 @@ class SolvedacCrawler(BaseCrawler):
 
             for index, row in enumerate(rows):
                 self.clickButtonToOpenCategories(row)
-                solvedacProblem = self.getProblemDetail(index, level)
+                problemDto = self.getProblemDetail(index, level)
 
-                if solvedacProblem:
-                    self.solvedacService.saveProblem(solvedacProblem)
+                if problemDto:
+                    self.problemService.saveProblem(problemDto)
 
         except Exception as e:
             self.notification.alert(f"[Error] Solvedac 문제 페이지({problemPage})를 불러오지 못했습니다. 다음 페이지로 넘어갑니다.")
@@ -111,7 +113,7 @@ class SolvedacCrawler(BaseCrawler):
             solvedCount = row.find_element(By.CSS_SELECTOR, "div.css-1ujcjo0").text.replace(",", "")
             platformDifficulty = level
             platformCategories = self.getPlatformCategories(row)
-            return SolvedacProblem(code, name, url, solvedCount, platformDifficulty, platformCategories)
+            return ProblemDto(code, name, url, platformDifficulty, solvedCount, platformCategories)
 
         except Exception as e:
             if code:
