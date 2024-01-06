@@ -38,10 +38,10 @@ def main():
     cfSolutionCrewler = CFSolutionCrawler(notification, stopEvent)
 
     with ThreadPoolExecutor(max_workers=4) as executor:
-        # executor.submit(runCrawler, solvedacCrawler, notification, "Solvedac", stopEvent)
-        # executor.submit(runCrawler, codeforcesCrawler, notification, "Codeforces", stopEvent)
-        # executor.submit(runCrawler, programmersCrawler, notification, "Programmers", stopEvent)
-        executor.submit(runCrawler, cfSolutionCrewler, notification, "CFSolution", stopEvent)
+        executor.submit(runCrawler, solvedacCrawler, notification, "Solvedac", stopEvent)
+        executor.submit(runCrawler, codeforcesCrawler, notification, "Codeforces", stopEvent)
+        executor.submit(runCrawler, programmersCrawler, notification, "Programmers", stopEvent)
+        # executor.submit(runCrawler, cfSolutionCrewler, notification, "CFSolution", stopEvent)
 
 
 if __name__ == "__main__":
