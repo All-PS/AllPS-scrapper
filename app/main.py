@@ -4,12 +4,15 @@ from concurrent.futures import ThreadPoolExecutor
 from app.crawler.CodeforcesCrawler import CodeforcesCrawler
 from app.crawler.ProgrammersCrawler import ProgrammersCrawler
 from app.crawler.SolvedacCrawler import SolvedacCrawler
+from app.crawler.CFSolutionCrawler import CFSolutionCrawler
+
 from app.notification.ConsoleNotification import ConsoleNotification
 from app.notification.SlackNotification import SlackNotification
 
 
 def runCrawler(crawler, notification, crawlerName, stopEvent):
     notification.alert(f"[Notice] {crawlerName} 크롤링이 시작되었습니다.")
+
     while not stopEvent.is_set():
         try:
             crawler.initialize()
@@ -22,6 +25,7 @@ def runCrawler(crawler, notification, crawlerName, stopEvent):
         if stopEvent.is_set():
             break
 
+
 def main():
     stopEvent = threading.Event()
 
@@ -31,11 +35,14 @@ def main():
     solvedacCrawler = SolvedacCrawler(notification, stopEvent)
     codeforcesCrawler = CodeforcesCrawler(notification, stopEvent)
     programmersCrawler = ProgrammersCrawler(notification, stopEvent)
+    cfSolutionCrewler = CFSolutionCrawler(notification, stopEvent)
 
-    with ThreadPoolExecutor(max_workers=3) as executor:
+    with ThreadPoolExecutor(max_workers=4) as executor:
         executor.submit(runCrawler, solvedacCrawler, notification, "Solvedac", stopEvent)
         executor.submit(runCrawler, codeforcesCrawler, notification, "Codeforces", stopEvent)
         executor.submit(runCrawler, programmersCrawler, notification, "Programmers", stopEvent)
+        # executor.submit(runCrawler, cfSolutionCrewler, notification, "CFSolution", stopEvent)
+
 
 if __name__ == "__main__":
     main()

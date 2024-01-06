@@ -4,6 +4,15 @@ class SolutionDao:
         self.dbConnection = dbConnection
         self.dbConnection.autocommit = False
 
+    def get(self, platform_id):
+        try:
+            with self.dbConnection.cursor() as cursor:
+                noSolutionProblems = self._checkNoSolutionProblem(cursor, platform_id)
+            return noSolutionProblems
+        except Exception as e:
+            raise e
+            return None
+
     def save(self, solution, programmingLanguage, problemCode):
         try:
             with self.dbConnection.cursor() as cursor:
@@ -26,6 +35,11 @@ class SolutionDao:
         cursor.execute(check_query, (problemCode,))
         return cursor.fetchone()
 
+    def _checkNoSolutionProblem(self, cursor, platform_id):
+        check_query = "SELECT p.id, p.code FROM problem p LEFT JOIN solution s ON p.id = s.problem_id WHERE p.platform_id = %s AND s.id IS NULL"
+        cursor.execute(check_query, (platform_id,))
+        return cursor.fetchall()
+
     def _checkSolutionExists(self, cursor, problemId):
         check_query = "SELECT id FROM solution WHERE problem_id = %s"
         cursor.execute(check_query, (problemId,))
@@ -41,15 +55,15 @@ class SolutionDao:
         return cursor.lastrowid
 
     def _insertSolution(self, cursor, solution, languageId, problemId):
-        existing_solution = self._checkSolutionExists(cursor, problemId)
-        if existing_solution:
-            problemId = existing_solution[0]
-            # self._updateProblem(cursor, asdf)
-
-        else:
-            insert_query = ("INSERT INTO solution (code, programming_language_id, problem_id) VALUES (%s, %s, %s)")
-            cursor.execute(insert_query, (solution, languageId, problemId,))
-            problemId = cursor.lastrowid
+        # existing_solution = self._checkSolutionExists(cursor, problemId)
+        # if existing_solution:
+        #     problemId = existing_solution[0]
+        #     # self._updateProblem(cursor, asdf)
+        #
+        # else:
+        insert_query = ("INSERT INTO solution (code, programming_language_id, problem_id) VALUES (%s, %s, %s)")
+        cursor.execute(insert_query, (solution, languageId, problemId,))
+        problemId = cursor.lastrowid
 
             # todo. 프로그래밍 언어 추가...?
             # for platformCategoryId in platformCategoryIds:

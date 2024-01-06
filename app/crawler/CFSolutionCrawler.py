@@ -1,5 +1,6 @@
 import random
 import time
+import re
 
 from selenium.common import NoSuchElementException
 from selenium.webdriver.common.by import By
@@ -11,18 +12,18 @@ from app.dto.SolutionDto import SolutionDto
 from app.service.SolutionService import SolutionService
 
 
-# todo. 직전 문제 set 기억...
 class CFSolutionCrawler(BaseCrawler):
-    PLATFORM_NAME = "codeforces"
+    PLATFORM_NAME = 2 # "codeforces"
     PLATFORM_URL = "https://codeforces.com/"
-    BASE_URL = "https://codeforces.com/problemset/status/page/"
-    SET_PAGE = "5"
+    BASE_URL1 = "https://codeforces.com/problemset/status/"
+    BASE_URL2 = "/problem/"
+    SET_ORDER = "?order=BY_ARRIVED_DESC"
 
     def __init__(self, notification, stopEvent):
         self.driver = None
         self.wait = None
         self.notification = notification
-        self.solutionService = SolutionService(notification, "C++")
+        self.solutionService = SolutionService(notification, "C++", self.PLATFORM_NAME)
         self.stopEvent = stopEvent
 
     def cleanup(self):
@@ -38,43 +39,69 @@ class CFSolutionCrawler(BaseCrawler):
             while True:
                 if self.stopEvent.is_set():
                     break
-
-                self.saveSolutionsInPage()
+                problemCodes = self.getNoSolutionProblem()
+                self.saveSolution(problemCodes)
                 time.sleep(random.uniform(8, 12))
 
         except Exception as e:
             raise
 
-    def saveSolutionsInPage(self):
+    def getNoSolutionProblem(self):
         try:
-            acceptedRows = self.getAcceptedRows()
-            for row in acceptedRows:
-                SolutionDto = self.getSolutionDetail(row)
+            problemCodes = self.solutionService.findProblems()
+            newCodes = []
+            for i, (id, code) in enumerate(problemCodes):
+                if i >= 500:  # 500개 처리
+                    break
+
+                match = re.match(r"(\d+)([A-Za-z]+)(\d*)", code)
+                if match:
+                    contest = match.group(1)
+                    ignoreContest = ['1910','1639', '1773', '1578', '1533', '1403', '1297']
+                    # 1910 1533 1297 코틀린 전용, 1778 1578 1403 솔루션 조회 불가
+
+                    if contest in ignoreContest:
+                        continue
+
+                    problemLetter = match.group(2)
+                    problemNum = match.group(3)
+                    problemLetter = problemLetter + problemNum
+                    # todo. 현재 cpp 언어만 받는데 kotlin 전용 대회 존재로 해당 대회 무시
+                    newCode = (id, contest, problemLetter)
+                    newCodes.append(newCode)
+            return newCodes
+        except Exception as e:
+            self.notification.alert(f"[Error] DB에서 Solution이 없는 Codeforces Problem을 불러오지 못했습니다. 다시 시도합니다.")
+            return None
+
+    def saveSolution(self, problemCodes):
+        try:
+            for id, contest, problem in problemCodes:
+                self.openSolutionPage(contest, problem)
+                row = self.findCPPRow()
+                if row is None:
+                    continue
+                SolutionDto = self.getSolutionDetail(contest, problem, row)
                 if SolutionDto:
                     self.solutionService.saveSolution(SolutionDto)
 
         except Exception as e:
             self.notification.alert(f"[Error] Codeforces Status 페이지를 불러오지 못했습니다. 다시 시도합니다.")
 
-    def getAcceptedRows(self):
+    def openSolutionPage(self, contest, problem):
         try:
-            self.driver.get(self.BASE_URL + self.SET_PAGE)
+            self.driver.get(self.BASE_URL1 + contest + self.BASE_URL2 + problem+ self.SET_ORDER)
             self.wait.until(lambda driver: driver.find_elements(By.XPATH, '//tbody/tr'))
-            acceptedRows = self.driver.find_elements(By.XPATH, "//tr[.//span[contains(@class, 'verdict-accepted')]]")
-        except NoSuchElementException:
-            acceptedRows = None
-        return acceptedRows
+        except Exception as e:
+            self.notification.alert(f"[Error] Codeforces 문제({contest, problem})의 Solution Page 열기 실패했습니다. 다음 문제로 넘어갑니다.")
 
-    def getSolutionDetail(self, row):
-        code = None
+    def getSolutionDetail(self,contest, problem, row):
         try:
-            code = row.find_element(By.XPATH, './/td[4]/a').text.split()[0]
-            isCPP = self.findCPP(row)
             # todo. 추후 getProgrammingLaguage로 변경
             language = 'C++'
-            if isCPP:
-                solution = self.getSolution(row)
-                return SolutionDto(solution, language, code)
+            solution = self.getSolution(row)
+            code = contest + problem
+            return SolutionDto(solution, language, code)
 
         except Exception as e:
             if code:
@@ -86,27 +113,28 @@ class CFSolutionCrawler(BaseCrawler):
     def getSolution(self, row):
         try:
             row.find_element(By.CLASS_NAME, "view-source").click()
-            # self.wait.until(lambda driver: driver.find_elements(By.CLASS_NAME, "linenums"))
-            time.sleep(3)
-            # todo. 팝업 열면 id=linenums div가 생기는데 팝업을 닫으면 해당 div가 사라지지 않음. 따라서 wait 적절하지 않음. 일단 3초 슬립하여 로딩 대기
+            time.sleep(random.uniform(2, 4))
+            self.wait.until(lambda driver: driver.find_elements(By.CLASS_NAME, "linenums"))
             lines = self.driver.find_elements(By.CSS_SELECTOR, ".linenums li")
             solution = "\n".join(line.get_attribute("textContent").strip() for line in lines)
             self.driver.find_element(By.CSS_SELECTOR, "a.close").click()
-        except NoSuchElementException:
+        except Exception as e:
             solution = 'None'
         return solution
 
-    def findCPP(self, row):
+    def findCPPRow(self):
         # todo. 추후 getProgrammingLaguage로 변경
+        rows = self.driver.find_elements(By.XPATH, "//tbody/tr[position() > 1]")
+        cppRow = None
         try:
-            lang = row.find_element(By.XPATH, './/td[5]').text
-            if 'C++' in lang:
-                isCPP = True
-            else:
-                isCPP = False
+            for row in rows:
+                lang = row.find_element(By.XPATH, './/td[5]').text
+                if 'C++' in lang:
+                    cppRow = row
+                    break
         except NoSuchElementException:
-            isCPP = False
-        return isCPP
+            cppRow = None
+        return cppRow
 
     def cleanup(self):
         if self.driver:
